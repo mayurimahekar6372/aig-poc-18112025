@@ -1,0 +1,111 @@
+variable "organization_id" {
+  description = "Organization id in organizations/nnnnnn format."
+  type        = string
+  validation {
+    condition     = can(regex("^organizations/[0-9]+", var.organization_id))
+    error_message = "The organization_id must in the form organizations/nnn."
+  }
+}
+
+variable "access_policy_title" {
+  description = "The title for the Access Context Manager Access Policy."
+  type        = string
+}
+
+variable "exclude_prod_projects" {
+  type = list(string)
+}
+
+variable "exclude_prod_vpcs" {
+  type = list(string)
+}
+
+variable "exclude_nprod_projects" {
+  type = list(string)
+}
+
+variable "exclude_nprod_vpcs" {
+  type = list(string)
+}
+
+
+# variable "additional_projects_vpcs" {
+#   description = "List of Project and VPCs"
+#   type        = map(list(string))
+#   default     = {}
+# }
+
+variable "vpc_sc_configs" {
+  description = "A map of independent VPC Service Controls configuration sets, keyed by environment/purpose."
+  type = map(object({
+
+    access_levels = map(object({
+      combining_function = string
+      conditions = list(object({
+        ip_subnetworks = optional(list(string))
+        members        = optional(list(string))
+      }))
+    }))
+
+    egress_policies = map(object({
+      from = optional(object({
+        access_levels = optional(list(string), [])
+        identity_type = optional(string)
+        identities    = optional(list(string))
+        resources     = optional(list(string), [])
+      }))
+      to = object({
+        operations = list(object({
+          method_selectors = list(string)
+          service_name     = string
+        }))
+        resources = list(string)
+      })
+    }))
+
+    ingress_policies = map(object({
+      title = string
+      from = object({
+        access_levels = optional(list(string), [])
+        identity_type = optional(string)
+        identities    = optional(list(string))
+        resources     = optional(list(string), [])
+      })
+      to = object({
+        resources = list(string)
+        operations = list(object({
+          service_name     = string
+          method_selectors = list(string)
+        }))
+      })
+    }))
+
+    perimeters = map(object({
+      title                         = optional(string)
+      use_explicit_dry_run_spec     = optional(bool)
+      override_with_empty_resources = optional(bool)
+      spec = optional(object({
+        access_levels    = optional(list(string))
+        ingress_policies = optional(list(string))
+        egress_policies  = optional(list(string))
+      }))
+      status = optional(object({
+        access_levels    = optional(list(string))
+        ingress_policies = optional(list(string))
+        egress_policies  = optional(list(string))
+      }))
+    }))
+  }))
+}
+
+
+variable "vpc_sc_config_environments" {
+  description = "A map that assigns an environment type ('prod', 'non_prod') to a list of VPC SC config keys."
+  type        = map(list(string))
+  default = {
+    # The 'prod' environment contains 'prod_config'
+    "prod" = ["prod_config"]
+    # The 'non_prod' environment contains 'non_prod_config' and 'dev_config'
+    "non_prod" = ["non_prod_config", "dev_config"]
+  }
+}
