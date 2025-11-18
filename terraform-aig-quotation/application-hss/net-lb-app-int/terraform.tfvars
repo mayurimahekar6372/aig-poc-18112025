@@ -1,0 +1,8 @@
+project_id = "non-prod-service-67326746"
+infra_project_id = "non-prod-host-1425588"
+region = "asia-northeast1"
+vpc_network_name = "non-prod-host-vpc"
+app_subnet_name = "nonprod-app-us-subnet"
+psc_subnet_name = "regional-managed-proxy-subnet"
+ilb_quotation_name = "ilb-quotation"
+ilb_transcription_name = "ilb-transcription"
